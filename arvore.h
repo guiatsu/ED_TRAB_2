@@ -32,7 +32,7 @@ typedef struct Lista {
 
 typedef struct Ascii {
     int frequencia;
-    char letra;
+    unsigned char letra;
 }T_Ascii;
 
 
@@ -41,20 +41,21 @@ typedef struct Ascii {
 #define TRUE 1
 #define FALSE 0
 
-
-T_No *Aloca_no();
-void Verifica_ocorrencia(T_Ascii ascii[], char texto[], int n);
-int Quicksort(T_Ascii vet[], int inicio, int fim);
-void Le_arquivo(char vet[], int n, char arquivo[]);
-int Verifica_tamanho_arquivo(char arquivo[]);
-void Passo_a_passo(char arquivo[]);
-
-
+void Imprimir_No(T_No *no);
+void Imprimir_Pre_Ordem(T_No *no);
 int Lista_vazia(T_Lista *lista);
 T_Lista *Aloca_lista();
 T_Elemento *Aloca_elemento(T_Lista *lista);
 void Ordena_lista(T_Lista *lista);
-
+T_No *Aloca_no();
+void Verifica_ocorrencia(T_Ascii ascii[], char texto[], int n);
+int Bubblesort(T_Ascii vet[], int fim);
+void Le_arquivo(char vet[], int n, char arquivo[]);
+int Verifica_tamanho_arquivo(char arquivo[]);
+void Remove_elemento (T_Lista *lista);
+T_No *Remove_ultimo_elemento (T_Lista *lista);
+T_No *Cria_Huffman (T_Lista *lista);
+void Passo_a_passo(char arquivo[], char arquivo_tabela[]);
 
 
 
