@@ -6,6 +6,6 @@
 
 
 int main(int argc, char **argv){
-    Passo_a_passo(argv[1], argv[2]);
+    Passo_a_passo(argv[1]);
     return 0;
 }

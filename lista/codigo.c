@@ -3,27 +3,73 @@
 #include "lista.h"
 #include "codigo.h"
 
-void Monta_codigo(T_No *no, int vet[], int n, FILE *fd){
+void Monta_codigo(T_No *no, int vet[],T_Codigo_Char cod[], int n, FILE *fd){
     if(no -> esquerda != NULL){
-        vet[n] = 1;
-		Monta_codigo(no -> esquerda, vet, n+1, fd);
+        vet[n] = 0;
+		Monta_codigo(no -> esquerda, vet,cod, n+1, fd);
 	}
 	if(no -> direita != NULL){
-        vet[n] = 0;
-		Monta_codigo(no -> direita, vet, n+1, fd);
+        vet[n] = 1;
+		Monta_codigo(no -> direita, vet,cod, n+1, fd);
 	}
     if(no -> esquerda == NULL && no -> direita == NULL){
         int i;
         fprintf(fd,"%c: ", no -> dados -> letra);
         for(i = 0; i < n; i++){
             fprintf(fd, "%d", vet[i]);
+            cod[no -> dados -> letra].letra = no -> dados -> letra;
+            cod[no -> dados -> letra].codigo[i] = vet[i];
         }
+            cod[no -> dados -> letra].tamanho_codigo = n;
         fprintf(fd,"\n");
     }
 
 }
+void escreve_binario(unsigned char c,int final, T_Codigo_Char vet[]){
+    static int cont = 0;
+    static unsigned char buffer = 0;
+    int i;
+    FILE *fd;
+    fd = fopen("myfile.huff","ab");
+    if(final == FALSE){
+        for(i = 0; i < vet[c].tamanho_codigo; i++){
+            buffer |= vet[c].codigo[i];
+            cont++;
+            if(cont == 8){
+                fwrite(&buffer,1,1,fd);
+                buffer = 0;
+                cont = 0;
+            }
+            buffer = buffer << 1;
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
+        }
+    }
+    else{
+        for(i = 0; i < vet[c].tamanho_codigo; i++){
+            buffer |= vet[c].codigo[i];
+            cont++;
+            if(cont == 8){
+                fwrite(&buffer,1,1,fd);
+                buffer = 0;
+                cont = 0;
+            }
+            buffer = buffer << 1;
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
+        }
+        if(cont != 0){
+            buffer = buffer << (8-(cont+1));
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
+            cont = 8-cont;
+            printf("cont_f: %d\n", cont);
+            fwrite(&buffer,1,1,fd);
+            rewind(fd);
+            fwrite(&cont,1,1,fd);
+        }
+    }
+    fclose(fd);
+}
 
-void Verifica_ocorrencia(T_Ascii ascii[], char texto[], int n){     // funcao que verifica se tem ocorrencia de um caractere e quantas vezes ele ocorre
+void Verifica_ocorrencia(T_Ascii ascii[], unsigned char texto[], int n){     // funcao que verifica se tem ocorrencia de um caractere e quantas vezes ele ocorre
     int i;
     for(i = 0; i < n; i++){
         ascii[texto[i]].frequencia++;                          // para cada caractere encontrado, incrementar um na posicao referente a tabela ascii
@@ -52,7 +98,7 @@ int Bubblesort(T_Ascii vet[], int fim){
         j++;
     }     
 }
-int Verifica_tamanho_arquivo(char arquivo[]){       // funcao que abre o arquivo no final e verifica quantos bytes estao contidos nele
+int Verifica_tamanho_arquivo(unsigned char arquivo[]){       // funcao que abre o arquivo no final e verifica quantos bytes estao contidos nele
     FILE *fd;                                       // descritor do arquivo
     int tam;                                        // variavel pra guardar o tamanho do arquivo
     fd = fopen(arquivo, "a");                       // abrindo o arquivo com descritor apontando para o final dele
@@ -60,7 +106,7 @@ int Verifica_tamanho_arquivo(char arquivo[]){       // funcao que abre o arquivo
     fclose(fd);                                     // fecha o arquivo
     return tam;
 }
-void Le_arquivo(char vet[], int n, char arquivo[]){ // funcao que passa o que estah escrito no arquivo de texto para um vetor
+void Le_arquivo(unsigned char vet[], int n, unsigned char arquivo[]){ // funcao que passa o que estah escrito no arquivo de texto para um vetor
     FILE *fd;                                       // descritor do arquivo
     int i;
     fd = fopen(arquivo, "r");                       // abrindo o arquivo para leitura
@@ -70,18 +116,26 @@ void Le_arquivo(char vet[], int n, char arquivo[]){ // funcao que passa o que es
     fclose(fd);                                     // fechando o arquivo
 }
 
-void Passo_a_passo(char arquivo[], char arquivo_tabela[]){                 // funcao responsavel por rodar o codigo
+void Passo_a_passo(unsigned char arquivo[]){                 // funcao responsavel por rodar o codigo
     int tam = Verifica_tamanho_arquivo(arquivo);
-    char string[tam];                               // vetor para guardar o texto retirado do arquivo original
+    unsigned char string[tam];                               // vetor para guardar o texto retirado do arquivo original
     int i, qtd_arvores;
     T_Lista *lista;
     T_No *huff;         // no onde ficara salvo a arvore de huffman
     lista = Aloca_lista();
     T_Ascii ascii[256];   // vetor para guarda em cada posicao se o caractere esta presente no vetor e quantas vezes aparece
+    T_Codigo_Char cod[256];
     FILE *fd;
     for(i = 0; i < 256; i++){
         ascii[i].frequencia = 0;
         ascii[i].letra = i;
+    }
+    for(i = 0; i < 256; i++){
+        cod[i].letra = '\0';
+        cod[i].tamanho_codigo = 0;
+        for(int j = 0; j < 15;j++){
+            cod[i].codigo[j] = 0;
+        }
     }
     Le_arquivo(string, tam, arquivo);
     Verifica_ocorrencia(ascii, string, tam);
@@ -97,13 +151,21 @@ void Passo_a_passo(char arquivo[], char arquivo_tabela[]){                 // fu
             lista -> ultimo -> no -> dados -> letra = ascii[i].letra;
         }
     }
-
-
     huff = Cria_huffman(lista);
     free(lista);
     Imprimir_Em_Ordem(huff);
-    fd = fopen(arquivo_tabela, "w");
+    fd = fopen("tabela.txt", "w");
     int vet[huff -> dados -> tamanho];
-    Monta_codigo(huff, vet, 0, fd);
+    Monta_codigo(huff, vet,cod, 0, fd);
     fclose(fd);
+    fd = fopen("myfile.huff","wb");
+    fclose(fd);
+    for( i = 0; i < tam; i++){
+        if(i == (tam-1)){
+            escreve_binario(string[i],1,cod);
+        }
+        else{
+            escreve_binario(string[i],0,cod);
+        }
+   }
 }
