@@ -88,10 +88,12 @@ void Remove_elemento(T_Lista *lista){
     ptr -> proximo -> no = pai;
     lista -> primeiro = lista -> primeiro -> proximo;
     lista -> quantidade--;
+    free(ptr -> no);
     free(ptr);
 }
 T_No *Remove_ultimo_elemento(T_Lista *lista){
     T_No *no = lista -> primeiro -> no;
+    free(lista -> primeiro -> no);
     free(lista -> primeiro);
     lista -> quantidade--;
     return no;
@@ -99,6 +101,8 @@ T_No *Remove_ultimo_elemento(T_Lista *lista){
 
 T_No *Cria_huffman(T_Lista *lista){
     while(lista -> quantidade > 1){
+        Mostra_lista(lista);
+        printf("\n");
         Remove_elemento(lista);
         Ordena_lista(lista);
     }

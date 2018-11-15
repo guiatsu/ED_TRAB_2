@@ -35,17 +35,20 @@ void escreve_binario(unsigned char c,int final, T_Codigo_Char vet[]){
         for(i = 0; i < vet[c].tamanho_codigo; i++){
             buffer |= vet[c].codigo[i];
             cont++;
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
             if(cont == 8){
                 fwrite(&buffer,1,1,fd);
                 buffer = 0;
                 cont = 0;
             }
             buffer = buffer << 1;
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
         }
     }
     else{
         for(i = 0; i < vet[c].tamanho_codigo; i++){
             buffer |= vet[c].codigo[i];
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
             cont++;
             if(cont == 8){
                 fwrite(&buffer,1,1,fd);
@@ -53,10 +56,13 @@ void escreve_binario(unsigned char c,int final, T_Codigo_Char vet[]){
                 cont = 0;
             }
             buffer = buffer << 1;
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
         }
         if(cont != 0){
             buffer = buffer << (8-(cont+1));
+            printf("buffer: %d\ncont: %d\n", buffer, cont);
             cont = 8-cont;
+            printf("cont_f: %d\n", cont);
             fwrite(&buffer,1,1,fd);
 
         }
@@ -135,7 +141,9 @@ void Passo_a_passo(unsigned char arquivo[]){                 // funcao responsav
     Le_arquivo(string, tam, arquivo);
     Verifica_ocorrencia(ascii, string, tam);
     Bubblesort(ascii, 256);
-
+    for(i = 0; i < 256; i ++){
+        printf("%d: %c %d\n", ascii[i].letra, ascii[i].letra, ascii[i].frequencia);
+    }
     for(i = 0; i < 256; i++){
         if(ascii[i].frequencia != 0){
             Aloca_elemento(lista);
@@ -150,6 +158,7 @@ void Passo_a_passo(unsigned char arquivo[]){                 // funcao responsav
     lista -> ultimo -> no -> dados -> letra = '\0';
     huff = Cria_huffman(lista);
     free(lista);
+    Imprimir_Em_Ordem(huff);
     fd = fopen("tabela.txt", "w");
     int vet[huff -> dados -> tamanho];
     Monta_codigo(huff, vet,cod, 0, fd);
@@ -161,4 +170,5 @@ void Passo_a_passo(unsigned char arquivo[]){                 // funcao responsav
     }
     escreve_binario('\0',1,cod);
     Libera_arvore(huff);
+
 }

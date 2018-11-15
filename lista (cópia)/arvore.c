@@ -21,7 +21,6 @@ void Libera_arvore(T_No *no){
 	if(no -> direita != NULL){
 		Libera_arvore(no -> direita);
 	}
-	free(no -> dados);
     free(no);
 }
 void Imprimir_Em_Ordem(T_No *no){
